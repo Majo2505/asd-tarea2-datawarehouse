@@ -1,0 +1,49 @@
+{
+	"name": "df_silver_vacunas",
+	"properties": {
+		"folder": {
+			"name": "silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "bronze_catalogo_departamentos",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          municipio_id as string,",
+				"          municipio_nombre as string,",
+				"          departamento as string,",
+				"          codigo_departamento as string,",
+				"          zona_geografica as string,",
+				"          es_capital_departamental as string,",
+				"          poblacion_depto_estimada as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n        TRIM(municipio_id) AS municipio_id,\\n        TRIM(municipio_nombre) AS municipio_nombre,\\n        TRIM(departamento) AS departamento,\\n        TRIM(codigo_departamento) AS codigo_departamento,\\n        TRIM(zona_geografica) AS zona_geografica,\\n        TRIM(es_capital_departamental) AS es_capital_departamental,\\n        TRIM(poblacion_depto_estimada) AS poblacion_depto_estimada\\n    FROM bronze.catalogo_departamentos_csv\\n    WHERE municipio_id IS NOT NULL AND TRIM(municipio_id) <> \\'\\'',",
+				"     format: 'query') ~> source1",
+				"source1 derive(es_capital_departamental = iif(in(['si','sí','true','1','yes','verdadero'], lower(trim(toString(es_capital_departamental)))), true(), false()),",
+				"          poblacion_depto_estimada = toInteger(iifNull(poblacion_depto_estimada, '0')),",
+				"          departamento = initCap(regexReplace(trim(departamento), '\\\\s+', ' ')),",
+				"          municipio_nombre = initCap(regexReplace(trim(municipio_nombre), '\\\\s+', ' ')),",
+				"          zona_geografica = initCap(regexReplace(trim(zona_geografica), '\\\\s+', ' ')),",
+				"          municipio_id = upper(trim(municipio_id)),",
+				"          codigo_departamento = upper(trim(codigo_departamento))) ~> derivedColumn1"
+			]
+		}
+	}
+}
