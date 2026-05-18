@@ -29,7 +29,15 @@
 					"name": "source3"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "silver_vacunaciones",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "union1"
@@ -140,7 +148,65 @@
 				"          numero_dosis = toInteger(regexReplace(toString(numero_dosis), '\\\\.0$', '')),",
 				"          edad_dias_aplicacion = toInteger(iifNull(edad_dias_aplicacion, '0')),",
 				"          temperatura_conservacion = toDecimal(iifNull(temperatura_conservacion, '0.0')),",
-				"          fecha_vacunacion = toString(coalesce(toDate(substring(fecha_vacunacion, 1, 10), 'yyyy-MM-dd'),      toDate(fecha_vacunacion, 'dd/MM/yyyy'),      toDate(fecha_vacunacion, 'd/M/yyyy') ), 'dd/MM/yyyy')) ~> derivedColumn1"
+				"          fecha_vacunacion = toString(coalesce(toDate(substring(fecha_vacunacion, 1, 10), 'yyyy-MM-dd'),      toDate(fecha_vacunacion, 'dd/MM/yyyy'),      toDate(fecha_vacunacion, 'd/M/yyyy') ), 'dd/MM/yyyy')) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          registro_id as string,",
+				"          paciente_id as string,",
+				"          ci_paciente as string,",
+				"          nombre_paciente as string,",
+				"          apellido_paterno as string,",
+				"          apellido_materno as string,",
+				"          sexo as string,",
+				"          fecha_nacimiento as string,",
+				"          municipio_residencia as string,",
+				"          comunidad_indigena as boolean,",
+				"          fecha_vacunacion as string,",
+				"          vacuna_id as string,",
+				"          vacuna_nombre as string,",
+				"          numero_dosis as integer,",
+				"          establecimiento_id as string,",
+				"          nombre_establecimiento as string,",
+				"          departamento as string,",
+				"          lote_vacuna as string,",
+				"          temperatura_conservacion as decimal(10,2),",
+				"          edad_dias_aplicacion as integer,",
+				"          aplicacion_oportuna as boolean,",
+				"          via_administracion as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          registro_id,",
+				"          paciente_id,",
+				"          ci_paciente,",
+				"          nombre_paciente,",
+				"          apellido_paterno,",
+				"          apellido_materno,",
+				"          sexo,",
+				"          fecha_nacimiento,",
+				"          municipio_residencia,",
+				"          comunidad_indigena,",
+				"          fecha_vacunacion,",
+				"          vacuna_id,",
+				"          vacuna_nombre,",
+				"          numero_dosis,",
+				"          establecimiento_id,",
+				"          nombre_establecimiento,",
+				"          departamento,",
+				"          lote_vacuna,",
+				"          temperatura_conservacion,",
+				"          edad_dias_aplicacion,",
+				"          aplicacion_oportuna,",
+				"          via_administracion",
+				"     )) ~> sink1"
 			]
 		}
 	}
