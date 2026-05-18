@@ -1,5 +1,5 @@
 {
-	"name": "pip_cargar_departamentos_silver",
+	"name": "pip_cargar_vacunaciones_silver",
 	"properties": {
 		"activities": [
 			{
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "df_silver_departamentos",
+						"referenceName": "df_silver_vacunaciones_consolidadas",
 						"type": "DataFlowReference"
 					},
 					"compute": {
