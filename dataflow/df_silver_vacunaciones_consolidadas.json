@@ -30,7 +30,17 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "union1"
+				},
+				{
+					"name": "union2"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          registro_id as string,",
@@ -118,7 +128,19 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'SELECT \\n        TRIM(registro_id) AS registro_id,\\n        TRIM(paciente_id) AS paciente_id,\\n        TRIM(ci_paciente) AS ci_paciente,\\n        TRIM(nombre_paciente) AS nombre_paciente,\\n        TRIM(apellido_paterno) AS apellido_paterno,\\n        TRIM(apellido_materno) AS apellido_materno,\\n        TRIM(sexo) AS sexo,\\n        TRIM(fecha_nacimiento) AS fecha_nacimiento,\\n        TRIM(municipio_residencia) AS municipio_residencia,\\n        TRIM(comunidad_indigena) AS comunidad_indigena,\\n        TRIM(fecha_vacunacion) AS fecha_vacunacion,\\n        TRIM(vacuna_id) AS vacuna_id,\\n        TRIM(vacuna_nombre) AS vacuna_nombre,\\n        TRIM(numero_dosis) AS numero_dosis,\\n        TRIM(establecimiento_id) AS establecimiento_id,\\n        TRIM(nombre_establecimiento) AS nombre_establecimiento,\\n        TRIM(departamento) AS departamento,\\n        TRIM(lote_vacuna) AS lote_vacuna,\\n        TRIM(temperatura_conservacion) AS temperatura_conservacion,\\n        TRIM(edad_dias_aplicacion) AS edad_dias_aplicacion,\\n        TRIM(aplicacion_oportuna) AS aplicacion_oportuna,\\n        TRIM(via_administracion) AS via_administracion\\n    FROM bronze.vacunacion_santa_cruz_csv\\n    WHERE registro_id IS NOT NULL AND TRIM(registro_id) <> \\'\\'',",
-				"     format: 'query') ~> source3"
+				"     format: 'query') ~> source3",
+				"source1, source2 union(byName: true)~> union1",
+				"union1, source3 union(byName: true)~> union2",
+				"union2 derive(nombre_paciente = initCap(regexReplace(trim(nombre_paciente), '\\\\s+', ' ')),",
+				"          apellido_paterno = initCap(regexReplace(trim(apellido_paterno), '\\\\s+', ' ')),",
+				"          apellido_materno = initCap(regexReplace(trim(apellido_materno), '\\\\s+', ' ')),",
+				"          sexo = case(   in(['Masculino','M','Hombre','masculino'], sexo), 'M',   in(['Femenino','F','Mujer','femenino'], sexo), 'F',   sexo ),",
+				"          comunidad_indigena = iif(in(['si','sí','true','1','yes','verdadero'], lower(trim(toString(comunidad_indigena)))), true(), false()),",
+				"          aplicacion_oportuna = iif(in(['si','sí','true','1','yes','verdadero'], lower(trim(toString(aplicacion_oportuna)))), true(), false()),",
+				"          numero_dosis = toInteger(regexReplace(toString(numero_dosis), '\\\\.0$', '')),",
+				"          edad_dias_aplicacion = toInteger(iifNull(edad_dias_aplicacion, '0')),",
+				"          temperatura_conservacion = toDecimal(iifNull(temperatura_conservacion, '0.0')),",
+				"          fecha_vacunacion = toString(coalesce(toDate(substring(fecha_vacunacion, 1, 10), 'yyyy-MM-dd'),      toDate(fecha_vacunacion, 'dd/MM/yyyy'),      toDate(fecha_vacunacion, 'd/M/yyyy') ), 'dd/MM/yyyy')) ~> derivedColumn1"
 			]
 		}
 	}
